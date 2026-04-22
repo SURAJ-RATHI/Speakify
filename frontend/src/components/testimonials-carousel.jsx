@@ -200,7 +200,6 @@ export function TestimonialsCarousel() {
       if (!video) return;
 
       pauseAllExcept(id);
-      video.currentTime = 0;
 
       const playAttempt = video.play();
       if (playAttempt?.catch) {
@@ -292,6 +291,14 @@ export function TestimonialsCarousel() {
               if (!isActive) {
                 pendingPlayIdRef.current = testimonial.id;
                 goToIndex(index);
+                return;
+              }
+
+              const video = videoRefs.current.get(testimonial.id);
+              if (!video) return;
+
+              if (!video.paused && !video.ended) {
+                video.pause();
                 return;
               }
 
