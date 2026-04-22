@@ -584,12 +584,8 @@ export const testimonials = [
     id: "testimonial-01",
     name: "Ritika Sharma",
     role: "Marketing Executive",
-<<<<<<< HEAD
     rating: 4,
     quote: "I went from avoiding introductions to confidently presenting in my office meetings. The speaking drills actually felt practical.",
-=======
-    rating: 5,
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
     videoThumbnailUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=450&fit=crop&q=80",
     videoUrl: "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/videostestimonials/English%20Speaking%20Course%20%20Student%20Testimonial%20%20British%20Express%20-%20British%20Express%20(720p,%20h264).mp4",
   },
@@ -597,12 +593,8 @@ export const testimonials = [
     id: "testimonial-02",
     name: "Aman Verma",
     role: "Engineering Student",
-<<<<<<< HEAD
     rating: 3,
     quote: "The English speaking batch fixed my hesitation. I now respond naturally instead of translating every sentence in my head.",
-=======
-    rating: 5,
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
     videoThumbnailUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=450&fit=crop&q=80",
     videoUrl: "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/videostestimonials/Student%20Testimonial%20of%20the%20Best%20English%20Speaking%20Course%20%20British%20Express%20-%20Spoken%20English%20Institute%20-%20British%20Express%20(720p,%20h264).mp4",
   },
@@ -610,12 +602,8 @@ export const testimonials = [
     id: "testimonial-03",
     name: "Sahil Khan",
     role: "Business Owner",
-<<<<<<< HEAD
     rating: 2,
     quote: "The stammering program felt supportive, not overwhelming. I finally have a routine that helps me speak with less tension.",
-=======
-    rating: 5,
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
     videoThumbnailUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=450&fit=crop&q=80",
     videoUrl: "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/videostestimonials/How%20I%20overcame%20my%20stutter%20to%20become%20a%20national%20speaking%20champion%20%20ITV%20News%20-%20ITV%20News%20(720p,%20h264).mp4",
   },
@@ -624,10 +612,7 @@ export const testimonials = [
     name: "Neha Gupta",
     role: "Parent",
     rating: 5,
-<<<<<<< HEAD
     quote: "My daughter became far more expressive on stage. The team was patient, structured, and genuinely invested in her growth.",
-=======
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
     videoThumbnailUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=450&fit=crop&q=80",
     videoUrl: "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/videostestimonials/Student%20Testimonial%20-%20Varnika%20Chauhan%20-%20UPES%20(720p,%20h264).mp4",
   },
@@ -636,10 +621,7 @@ export const testimonials = [
     name: "Pranav Mehta",
     role: "Startup Founder",
     rating: 5,
-<<<<<<< HEAD
     quote: "What stood out was the feedback quality. Each session gave me something specific to improve, and it showed quickly.",
-=======
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
     videoThumbnailUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=450&fit=crop&q=80",
     videoUrl: "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/videostestimonials/YTDown.com_YouTube_Tamanna-Sharma-IELTS-LEARNING-STUDENT-TE_Media_ECXle7Z2CgA_001_720p.mp4",
   },

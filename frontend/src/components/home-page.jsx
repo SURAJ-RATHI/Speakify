@@ -24,6 +24,8 @@ import {
 } from '../data/constant';
 import { TestimonialsCarousel } from './testimonials-carousel';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000').replace(/\/+$/, '');
+
 // Static constants - moved outside component to avoid recreation on every render
 const INSTRUCTOR_QUICK_PLATFORMS = ['whatsapp', 'youtube', 'linkedin', 'instagram', 'twitter', 'email'];
 
@@ -58,7 +60,21 @@ const FeedbackForm = React.memo(function FeedbackForm() {
     message: ''
   });
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [submitMessage, setSubmitMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!submitStatus) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmitStatus(null);
+      setSubmitMessage('');
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [submitStatus]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -73,16 +89,39 @@ const FeedbackForm = React.memo(function FeedbackForm() {
     setIsSubmitting(true);
 
     try {
-      console.log('Form submitted:', formData);
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', message: '' });
-      const timeoutId = setTimeout(() => setSubmitStatus(null), 3000);
-      return () => clearTimeout(timeoutId);
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/feedback/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        const validationError = Array.isArray(data?.errors) && data.errors.length > 0
+          ? data.errors.map((error) => `${error.field}: ${error.message}`).join('. ')
+          : null;
+        throw new Error(validationError || data.message || 'Something went wrong while sending your feedback.');
+      }
+
+      if (data.success) {
+        console.log('Feedback submitted successfully:', data);
+        setSubmitStatus('success');
+        setSubmitMessage(data.message || 'Thank you. We have received your message and will get back to you soon.');
+        setFormData({ name: '', email: '', message: '' });
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       setSubmitStatus('error');
-      const timeoutId = setTimeout(() => setSubmitStatus(null), 3000);
-      return () => clearTimeout(timeoutId);
+      setSubmitMessage(error.message || 'Something went wrong. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -144,12 +183,12 @@ const FeedbackForm = React.memo(function FeedbackForm() {
 
           {submitStatus === 'success' && (
             <div className="feedback-message feedback-message-success">
-              Thank you. We have received your message and will get back to you soon.
+              {submitMessage}
             </div>
           )}
           {submitStatus === 'error' && (
             <div className="feedback-message feedback-message-error">
-              Something went wrong. Please try again later.
+              {submitMessage}
             </div>
           )}
 
