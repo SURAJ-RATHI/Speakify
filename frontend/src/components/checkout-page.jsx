@@ -88,7 +88,11 @@ export function CheckoutPage() {
           key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY',
           amount: course.priceInr * 100, // Amount in paise
           currency: 'INR',
+<<<<<<< HEAD
           name: 'Speak with amit',
+=======
+          name: 'Speakify',
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
           description: `Enrollment for ${course.shortTitle}`,
           image: 'https://ik.imagekit.io/kzspvcbz5/speakify-logo.png',
           handler: async (response) => {
@@ -198,3 +202,7 @@ export function CheckoutPage() {
     </section>
   );
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
