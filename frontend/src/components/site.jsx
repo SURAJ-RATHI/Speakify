@@ -1,6 +1,8 @@
 import { FaArrowRight, FaBookOpen, FaCommentDots, FaHeart, FaMicrophoneAlt, FaWhatsapp } from 'react-icons/fa';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
+import logo from '../../assets/logo1.png';
+import footerLogo from '../../assets/logo2.png';
 
 const iconMap = {
   mic: FaMicrophoneAlt,
@@ -70,9 +72,9 @@ export function AppLayout() {
   return (
     <div className="site-shell">
       <header className="site-header">
-        <Link className="brand-mark" to="/" onClick={closeMenu}>
-          <span className="brand-dot" />
-          Speakify
+        <Link className="brand-mark" to="/" onClick={closeMenu} aria-label="Speakify home">
+          <img className="brand-logo" src={logo} alt="Speakify" />
+          <span className="sr-only">Speakify</span>
         </Link>
         <button 
           className={`nav-toggle ${isMenuOpen ? 'active' : ''}`}
@@ -97,8 +99,9 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <div>
-          <h4>Speakify</h4>
+        <div className="footer-brand">
+          <img className="footer-logo" src={footerLogo} alt="Speakify" />
+          <span className="sr-only">Speakify</span>
           <p>Helping learners become confident, expressive, and fluent speakers.</p>
         </div>
         <div>
