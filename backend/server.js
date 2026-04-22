@@ -10,14 +10,24 @@ const connectDatabase = require("./config/database");
 const configurePassport = require("./config/passport");
 const authRoutes = require("./modules/auth/routes/auth.routes");
 const paymentRoutes = require("./modules/payment/routes/payment.routes");
+const feedbackRoutes = require("./modules/feedback/routes/feedback.routes");
 const { errorHandler } = require("./utils/errorHandler");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "http://localhost:5173")
+const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+const defaultOrigins = [
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173",
+    "http://127.0.0.1:3000",
+];
+const allowedOrigins = [...new Set([...configuredOrigins, ...defaultOrigins])];
 
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
@@ -25,7 +35,13 @@ app.disable("x-powered-by");
 app.use(helmet());
 app.use(
     cors({
-        origin: allowedOrigins,
+        origin(origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
         credentials: true,
     })
 );
@@ -47,6 +63,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/v1/feedback", feedbackRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 app.use((req, res) => {
     res.status(404).json({
