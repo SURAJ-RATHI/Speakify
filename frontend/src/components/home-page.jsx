@@ -1,9 +1,15 @@
+<<<<<<< HEAD
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import {
+  FaArrowRight,
+=======
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import {
   FaArrowRight,
   FaCheckCircle,
   FaChevronLeft,
   FaChevronRight,
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
   FaEnvelope,
   FaFacebookF,
   FaGlobe,
@@ -24,9 +30,14 @@ import {
   heroContent,
   instructorCertificates,
   services,
+<<<<<<< HEAD
+} from '../data/constant';
+import { TestimonialsCarousel } from './testimonials-carousel';
+=======
   testimonials,
 } from '../data/constant';
 import { setupVideoPreloadingObserver, getYouTubeEmbedUrl } from '../utils/videoPreload';
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
 
 // Static constants - moved outside component to avoid recreation on every render
 const INSTRUCTOR_QUICK_PLATFORMS = ['whatsapp', 'youtube', 'linkedin', 'instagram', 'twitter', 'email'];
@@ -114,7 +125,11 @@ const FeedbackForm = React.memo(function FeedbackForm() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+<<<<<<< HEAD
+                placeholder="Your Name"
+=======
                 placeholder="John Doe"
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
                 required
               />
             </div>
@@ -127,7 +142,11 @@ const FeedbackForm = React.memo(function FeedbackForm() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+<<<<<<< HEAD
+                placeholder="abc@example.com"
+=======
                 placeholder="john@example.com"
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
                 required
               />
             </div>
@@ -171,6 +190,8 @@ const FeedbackForm = React.memo(function FeedbackForm() {
   );
 });
 
+<<<<<<< HEAD
+=======
 const getCardsPerView = () => {
   if (typeof window === 'undefined') return 3;
   if (window.innerWidth >= 1068) return 3;
@@ -373,6 +394,7 @@ function TestimonialSlider() {
 
 const MemoizedTestimonialSlider = React.memo(TestimonialSlider);
 
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
 export function HomePage() {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -472,7 +494,11 @@ export function HomePage() {
           description="Use the arrow buttons at the bottom-right to slide through testimonials."
           center
         />
+<<<<<<< HEAD
+        <TestimonialsCarousel />
+=======
         <MemoizedTestimonialSlider />
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
       </section>
 
       <section className="section-shell about-minimal" id="about-preview">
@@ -542,7 +568,11 @@ export function HomePage() {
           <div className="video-frame">
             <iframe
               src="https://www.youtube.com/embed/fHjq16kUFz0?start=297"
+<<<<<<< HEAD
+              title="Speak with amit introduction"
+=======
               title="Speakify introduction"
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

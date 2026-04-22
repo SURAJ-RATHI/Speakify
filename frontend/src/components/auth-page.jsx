@@ -31,7 +31,11 @@ export function AuthPage() {
 
         <div className="auth-card">
           <div className="auth-content">
+<<<<<<< HEAD
+            <h1 className="auth-title">Welcome to Speak with amit</h1>
+=======
             <h1 className="auth-title">Welcome to Speakify</h1>
+>>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
             <p className="auth-subtitle">Sign in with your Google account to access courses and start learning</p>
 
             <button
