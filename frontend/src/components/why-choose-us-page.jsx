@@ -17,11 +17,7 @@ export function WhyChooseUsPage() {
         </Link>
         <SectionHeading
           eyebrow="Why Choose Us"
-<<<<<<< HEAD
           title="Why learners trust Speak with amit"
-=======
-          title="Why learners trust Speakify"
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
           description="A dedicated page where each promise is paired with visuals. You can replace any image URL from constant.js."
           center
         />

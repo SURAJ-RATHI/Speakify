@@ -1,11 +1,6 @@
 import { FaArrowRight, FaBookOpen, FaCommentDots, FaHeart, FaMicrophoneAlt, FaWhatsapp } from 'react-icons/fa';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
-<<<<<<< HEAD
-=======
-import logo from '../../assets/logo1.png';
-import footerLogo from '../../assets/logo2.png';
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
 
 const iconMap = {
   mic: FaMicrophoneAlt,
@@ -75,7 +70,6 @@ export function AppLayout() {
   return (
     <div className="site-shell">
       <header className="site-header">
-<<<<<<< HEAD
         <Link className="brand-mark" to="/" onClick={closeMenu} aria-label="Speak with amit home">
           {/* <img className="brand-logo" src="/images/logo.png" alt="Speak with amit"  /> */}
           
@@ -86,11 +80,6 @@ export function AppLayout() {
             style={{ width: '100%', height: '50px', objectFit: 'contain' }}
           />
 
-=======
-        <Link className="brand-mark" to="/" onClick={closeMenu} aria-label="Speakify home">
-          <img className="brand-logo" src={logo} alt="Speakify" />
-          <span className="sr-only">Speakify</span>
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
         </Link>
         <button 
           className={`nav-toggle ${isMenuOpen ? 'active' : ''}`}
@@ -116,7 +105,6 @@ export function AppLayout() {
       </main>
       <footer className="site-footer">
         <div className="footer-brand">
-<<<<<<< HEAD
           {/* <img className="footer-brand-logo" src="/images/logo.png" alt="Speak with amit" /> */}
           
           <img
@@ -129,13 +117,6 @@ export function AppLayout() {
           <p>Helping learners become confident, expressive, and fluent speakers.</p>
         </div>
         <div className="footer-links">
-=======
-          <img className="footer-logo" src={footerLogo} alt="Speakify" />
-          <span className="sr-only">Speakify</span>
-          <p>Helping learners become confident, expressive, and fluent speakers.</p>
-        </div>
-        <div>
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
           <span>Programs</span>
           <Link to="/services/public-speaking">Public Speaking</Link>
           <Link to="/services/english-speaking">English Speaking</Link>
@@ -143,11 +124,7 @@ export function AppLayout() {
           <Link to="/why-choose-us">Why Choose Us</Link>
           <Link to="/about-instructor">About Instructor</Link>
         </div>
-<<<<<<< HEAD
         <div className="footer-links">
-=======
-        <div>
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
           <span>Contact</span>
           <a href="mailto:hello@speakify.com">hello@speakify.com</a>
           <a href="tel:+910000000000">+91 00000 00000</a>

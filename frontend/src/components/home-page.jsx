@@ -1,15 +1,6 @@
-<<<<<<< HEAD
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   FaArrowRight,
-=======
-import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import {
-  FaArrowRight,
-  FaCheckCircle,
-  FaChevronLeft,
-  FaChevronRight,
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
   FaEnvelope,
   FaFacebookF,
   FaGlobe,
@@ -30,14 +21,8 @@ import {
   heroContent,
   instructorCertificates,
   services,
-<<<<<<< HEAD
 } from '../data/constant';
 import { TestimonialsCarousel } from './testimonials-carousel';
-=======
-  testimonials,
-} from '../data/constant';
-import { setupVideoPreloadingObserver, getYouTubeEmbedUrl } from '../utils/videoPreload';
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
 
 // Static constants - moved outside component to avoid recreation on every render
 const INSTRUCTOR_QUICK_PLATFORMS = ['whatsapp', 'youtube', 'linkedin', 'instagram', 'twitter', 'email'];
@@ -125,11 +110,7 @@ const FeedbackForm = React.memo(function FeedbackForm() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-<<<<<<< HEAD
                 placeholder="Your Name"
-=======
-                placeholder="John Doe"
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
                 required
               />
             </div>
@@ -142,11 +123,7 @@ const FeedbackForm = React.memo(function FeedbackForm() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-<<<<<<< HEAD
                 placeholder="abc@example.com"
-=======
-                placeholder="john@example.com"
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
                 required
               />
             </div>
@@ -190,211 +167,6 @@ const FeedbackForm = React.memo(function FeedbackForm() {
   );
 });
 
-<<<<<<< HEAD
-=======
-const getCardsPerView = () => {
-  if (typeof window === 'undefined') return 3;
-  if (window.innerWidth >= 1068) return 3;
-  if (window.innerWidth >= 768) return 2;
-  return 1;
-};
-
-// Memoized testimonial card component to prevent unnecessary re-renders
-const TestimonialCard = React.memo(function TestimonialCard({ item }) {
-  const embedUrl = getYouTubeEmbedUrl(item.videoUrl);
-  const isYouTube = !!embedUrl;
-
-  return (
-    <article className="testimonial-card testimonial-video-card" data-video-url={item.videoUrl}>
-      <div className="testimonial-video-thumb">
-        {isYouTube ? (
-          <iframe
-            src={embedUrl}
-            title={`${item.name} testimonial`}
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-            loading="lazy"
-            style={{ aspectRatio: '16/9' }}
-          />
-        ) : (
-          <video
-            src={item.videoUrl}
-            poster={item.videoThumbnailUrl}
-            muted
-            loop
-            controls
-            playsInline
-            preload="none"
-            style={{ aspectRatio: '16/9', objectFit: 'cover' }}
-          >
-            Your browser does not support the video tag.
-          </video>
-        )}
-      </div>
-      <div className="testimonial-stars">
-        <FaCheckCircle />
-        <FaCheckCircle />
-        <FaCheckCircle />
-      </div>
-      <p>{item.quote}</p>
-      <div>
-        <strong>{item.name}</strong>
-        <span>{item.role}</span>
-      </div>
-    </article>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison: only re-render if item changed
-  return prevProps.item.id === nextProps.item.id;
-});
-
-function TestimonialSlider() {
-  const [cardsPerView, setCardsPerView] = useState(getCardsPerView);
-  const [page, setPage] = useState(0);
-  const videoPreloadObserverRef = useRef(null);
-  const videoElementsRef = useRef([]);
-  const autoplayTimeoutRef = useRef(null);
-
-  const handleResize = useCallback(() => {
-    setCardsPerView(getCardsPerView());
-  }, []);
-
-  // Debounced resize handler for better performance
-  useEffect(() => {
-    let timeoutId;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleResize, 150);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(timeoutId);
-    };
-  }, [handleResize]);
-
-  // Setup video preloading observer - optimized with debounce
-  useEffect(() => {
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-
-    autoplayTimeoutRef.current = setTimeout(() => {
-      if (!videoPreloadObserverRef.current) {
-        videoPreloadObserverRef.current = setupVideoPreloadingObserver(testimonials);
-      }
-      
-      // Observe visible cards immediately for faster loading
-      const videoElements = document.querySelectorAll('[data-video-url]');
-      videoElements.forEach(el => {
-        videoPreloadObserverRef.current?.observe(el);
-      });
-    }, 2000); // Reduced from 3000ms for faster preloading
-
-    return () => {
-      if (autoplayTimeoutRef.current) {
-        clearTimeout(autoplayTimeoutRef.current);
-      }
-      if (videoPreloadObserverRef.current) {
-        videoPreloadObserverRef.current.disconnect();
-        videoPreloadObserverRef.current = null;
-      }
-    };
-  }, []);
-
-  const totalPages = useMemo(() => Math.ceil(testimonials.length / cardsPerView), [cardsPerView]);
-
-  // Reset page if it exceeds total pages
-  useEffect(() => {
-    setPage((prev) => (prev >= totalPages ? 0 : prev));
-  }, [totalPages]);
-
-  // Auto-advance carousel - optimized with cleanup
-  useEffect(() => {
-    if (totalPages <= 1) return;
-
-    const intervalId = window.setInterval(() => {
-      setPage((prev) => (prev + 1) % totalPages);
-    }, 4500); // Slightly longer to improve page visibility
-
-    return () => window.clearInterval(intervalId);
-  }, [totalPages]);
-
-  // Memoize visible testimonials calculation
-  const visibleTestimonials = useMemo(() => {
-    const startIndex = page * cardsPerView;
-    return Array.from({ length: cardsPerView }, (_, index) => {
-      const itemIndex = (startIndex + index) % testimonials.length;
-      return testimonials[itemIndex];
-    });
-  }, [cardsPerView, page]);
-
-  // Preload next and previous slides for smooth navigation
-  useEffect(() => {
-    if (!videoPreloadObserverRef.current) return;
-
-    // Unobserve old elements
-    videoElementsRef.current.forEach(el => {
-      videoPreloadObserverRef.current?.unobserve(el);
-    });
-
-    // Observe current visible elements
-    const videoElements = document.querySelectorAll('[data-video-url]');
-    videoElementsRef.current = Array.from(videoElements);
-    videoElements.forEach(el => {
-      videoPreloadObserverRef.current?.observe(el);
-    });
-
-    return () => {
-      videoElementsRef.current.forEach(el => {
-        videoPreloadObserverRef.current?.unobserve(el);
-      });
-    };
-  }, [visibleTestimonials]);
-
-  const goPrev = useCallback(() => {
-    setPage((prev) => (prev - 1 + totalPages) % totalPages);
-  }, [totalPages]);
-
-  const goNext = useCallback(() => {
-    setPage((prev) => (prev + 1) % totalPages);
-  }, [totalPages]);
-
-  return (
-    <div className="testimonial-slider-shell">
-      <div className="testimonial-slider-grid">
-        {visibleTestimonials.map((item) => (
-          <TestimonialCard key={item.id} item={item} />
-        ))}
-      </div>
-      <div className="testimonial-controls" aria-label="testimonial slider controls">
-        <button 
-          type="button" 
-          onClick={goPrev} 
-          className="testimonial-nav-button" 
-          aria-label="Previous testimonials"
-          title="Previous testimonials"
-        >
-          <FaChevronLeft />
-        </button>
-        <button 
-          type="button" 
-          onClick={goNext} 
-          className="testimonial-nav-button" 
-          aria-label="Next testimonials"
-          title="Next testimonials"
-        >
-          <FaChevronRight />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const MemoizedTestimonialSlider = React.memo(TestimonialSlider);
-
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
 export function HomePage() {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -494,11 +266,7 @@ export function HomePage() {
           description="Use the arrow buttons at the bottom-right to slide through testimonials."
           center
         />
-<<<<<<< HEAD
         <TestimonialsCarousel />
-=======
-        <MemoizedTestimonialSlider />
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
       </section>
 
       <section className="section-shell about-minimal" id="about-preview">
@@ -568,11 +336,7 @@ export function HomePage() {
           <div className="video-frame">
             <iframe
               src="https://www.youtube.com/embed/fHjq16kUFz0?start=297"
-<<<<<<< HEAD
               title="Speak with amit introduction"
-=======
-              title="Speakify introduction"
->>>>>>> 6976f4c24f6ce36997a1ba3bf2e448ec6eb7380d
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
