@@ -284,7 +284,7 @@ export const services = [
       "Move from hesitation to smooth conversation with practical fluency routines, vocabulary patterns, and real-life speaking scenarios.",
     icon: "message",
     accent: "var(--accent-blue)",
-    priceInr: 14500,
+    priceInr: 145,
     stats: ["Daily fluency systems", "Accent-neutral speaking", "Conversation clubs"],
     outcomes: [
       "Speak English confidently in social, academic, and professional settings.",
@@ -333,7 +333,7 @@ export const services = [
       "Follow a supportive speech-confidence framework with guided exercises, breathing work, and practical speaking exposure designed for steady progress.",
     icon: "heart",
     accent: "#e91e63",
-    priceInr: 16000,
+    priceInr: 16,
     stats: ["Breath and pacing drills", "Safe speaking practice", "Progress tracking"],
     outcomes: [
       "Reduce speaking tension through structured breathing and rhythm practice.",
