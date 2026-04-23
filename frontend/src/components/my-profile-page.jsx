@@ -134,7 +134,7 @@ export function MyProfilePage() {
                 const courseDetails = getCourseDetails(purchase.courseId);
                 return (
                   <div key={purchase.courseId} className="course-card purchased">
-                    <div className="course-badge">✓ Purchased</div>
+                    <div className="course-badge">Purchased</div>
                     <h3>{purchase.courseName}</h3>
                     <p className="course-purchased-date">
                       Purchased on {new Date(purchase.purchasedAt).toLocaleDateString('en-IN', {
