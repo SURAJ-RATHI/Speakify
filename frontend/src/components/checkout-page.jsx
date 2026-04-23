@@ -17,10 +17,26 @@ export function CheckoutPage() {
   const [error, setError] = useState('');
   const [courseOwned, setCourseOwned] = useState(false);
   const [checkingOwnership, setCheckingOwnership] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
 
   const accessToken = getStoredAccessToken();
-  const user = getStoredAuthUser();
+  let user = getStoredAuthUser();
   const course = services.find((s) => s.slug === courseSlug);
+
+  // Extract user data from localStorage or token
+  useEffect(() => {
+    if (user?.email) {
+      setUserEmail(user.email);
+    } else if (accessToken) {
+      const decoded = decodeJwtPayload(accessToken);
+      setUserEmail(decoded?.email || '');
+    }
+
+    if (user?.name) {
+      setUserName(user.name);
+    }
+  }, [user, accessToken]);
 
   // Check if user already owns this course
   useEffect(() => {
@@ -173,8 +189,8 @@ export function CheckoutPage() {
             }
           },
           prefill: {
-            name: user?.name || '',
-            email: user?.email || '',
+            name: userName || '',
+            email: userEmail || '',
           },
           theme: {
             color: '#f97316',
@@ -240,12 +256,12 @@ export function CheckoutPage() {
 
           <div className="payment-item">
             <span className="payment-label">Student Name</span>
-            <span className="payment-value">{user?.name || 'N/A'}</span>
+            <span className="payment-value">{userName || 'N/A'}</span>
           </div>
 
           <div className="payment-item">
             <span className="payment-label">Email</span>
-            <span className="payment-value">{user?.email || 'N/A'}</span>
+            <span className="payment-value">{userEmail || 'N/A'}</span>
           </div>
 
           <div className="payment-divider"></div>
