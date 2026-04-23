@@ -1,6 +1,7 @@
 import { FaArrowRight, FaBookOpen, FaCommentDots, FaHeart, FaMicrophoneAlt, FaWhatsapp } from 'react-icons/fa';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
+import { getStoredAuthUser } from '../utils/auth';
 
 const iconMap = {
   mic: FaMicrophoneAlt,
@@ -19,6 +20,7 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const user = getStoredAuthUser();
   const sectionHref = (id) => (location.pathname === '/' ? `#${id}` : `/#${id}`);
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -93,12 +95,37 @@ export function AppLayout() {
         <nav className={`site-nav ${isMenuOpen ? 'mobile-open' : ''}`}>
           <NavLink to="/" onClick={closeMenu}>Home</NavLink>
           <NavLink to="/why-choose-us" onClick={closeMenu}>Why Choose Us</NavLink>
-          <a href={sectionHref('testimonials')} onClick={handleSectionNavigation('testimonials')}>Testimonials</a>
+          {user ? (
+            <NavLink to="/my-profile" onClick={closeMenu}>My Batches</NavLink>
+          ) : (
+            <a href={sectionHref('testimonials')} onClick={handleSectionNavigation('testimonials')}>Testimonials</a>
+          )}
           <NavLink to="/about-instructor" onClick={closeMenu}>About Instructor</NavLink>
         </nav>
-        <a className="nav-cta" href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>
-          Courses
-        </a>
+        <div className="nav-actions">
+          <a className="nav-cta" href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>
+            Courses
+          </a>
+          {user && (
+            <button
+              className="profile-button"
+              onClick={() => {
+                closeMenu();
+                navigate('/my-profile');
+              }}
+              aria-label="Open user profile"
+              title={user.name}
+            >
+              {user.picture ? (
+                <img src={user.picture} alt={user.name} className="profile-avatar" />
+              ) : (
+                <span className="profile-avatar-placeholder">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
       </header>
       <main>
         <Outlet />

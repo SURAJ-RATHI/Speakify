@@ -23,6 +23,30 @@ const userSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
+        profileImage: {
+            type: String,
+            default: null,
+        },
+        purchasedCourses: [
+            {
+                courseId: {
+                    type: String,
+                    required: true,
+                },
+                courseName: {
+                    type: String,
+                    required: true,
+                },
+                purchasedAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+                paymentId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Payment",
+                },
+            },
+        ],
         refreshTokenHash: {
             type: String,
             default: null,

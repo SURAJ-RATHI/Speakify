@@ -3,7 +3,9 @@ const passport = require("passport");
 
 const configurePassport = require("../../../config/passport");
 const authController = require("../controllers/auth.controller");
+const userController = require("../controllers/user.controller");
 const { googleAuthLimiter } = require("../middlewares/auth.rate-limit");
+const { verifyAuth } = require("../middlewares/verify-auth");
 
 const router = express.Router();
 const isGoogleAuthConfigured = configurePassport.isGoogleAuthConfigured;
@@ -35,6 +37,10 @@ router.get(
 // Session management
 router.post("/refresh-token", authController.refreshToken);
 router.post("/logout", authController.logout);
+
+// User profile routes
+router.get("/profile", verifyAuth, userController.getUserProfile);
+router.post("/check-course-ownership", verifyAuth, userController.checkCourseOwnership);
 
 module.exports = router;
 

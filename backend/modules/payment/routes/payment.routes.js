@@ -10,6 +10,9 @@ router.post("/create-order", verifyAuth, paymentController.createPaymentOrder);
 // Verify payment after Razorpay callback
 router.post("/verify", verifyAuth, paymentController.verifyPayment);
 
+// Handle payment failure
+router.post("/failure", verifyAuth, paymentController.handlePaymentFailure);
+
 // Get user's payment history
 router.get("/history", verifyAuth, paymentController.getPaymentHistory);
 

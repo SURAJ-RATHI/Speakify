@@ -36,6 +36,7 @@ const paymentSchema = new mongoose.Schema(
             type: String,
             enum: ["pending", "completed", "failed"],
             default: "pending",
+            index: true,
         },
         razorpayOrderId: {
             type: String,
@@ -47,9 +48,13 @@ const paymentSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
+        failureReason: {
+            type: String,
+            default: null,
+        },
         purchasedAt: {
             type: Date,
-            default: Date.now,
+            default: null,
         },
     },
     {
