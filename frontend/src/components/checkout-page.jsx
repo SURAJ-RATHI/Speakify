@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getStoredAccessToken, getStoredAuthUser } from '../utils/auth';
+import { getStoredAccessToken, getStoredAuthUser, decodeJwtPayload } from '../utils/auth';
 import { services } from '../data/constant';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
