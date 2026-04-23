@@ -1,0 +1,3 @@
+gitgit add frontend/vercel.json
+git commit -m "Add Vercel SPA routing config"
+git push
