@@ -20,8 +20,12 @@ import {
   faqs,
   heroContent,
   instructorCertificates,
-  services,
 } from '../data/constant';
+import {
+  fetchCourses,
+  mergeCourseWithServiceMeta,
+  sortCoursesForUi,
+} from '../utils/course-data';
 import { TestimonialsCarousel } from './testimonials-carousel';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000').replace(/\/+$/, '');
@@ -212,12 +216,47 @@ export function HomePage() {
   }, []);
 
   const firstClassroomImage = classroomImages[0];
+  const [courseCards, setCourseCards] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState('');
   
   // Memoize instructor links calculation to avoid unnecessary filtering on every render
   const instructorQuickLinks = useMemo(() => {
     return INSTRUCTOR_QUICK_PLATFORMS
       .map((platform) => heroContent.socials.find((social) => social.platform.toLowerCase() === platform))
       .filter(Boolean);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCourses = async () => {
+      setCoursesLoading(true);
+      setCoursesError('');
+
+      try {
+        const courses = await fetchCourses();
+        if (!isMounted) return;
+
+        const mergedCourses = sortCoursesForUi(courses).map((course) => mergeCourseWithServiceMeta(course));
+        setCourseCards(mergedCourses);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setCoursesError(error.message || 'Failed to load course catalog');
+        setCourseCards([]);
+      } finally {
+        if (isMounted) {
+          setCoursesLoading(false);
+        }
+      }
+    };
+
+    void loadCourses();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -291,11 +330,16 @@ export function HomePage() {
           title="Three focused paths for stronger speaking skills"
           description="Choose the learning journey that matches your biggest communication goal and move forward with guided practice."
         />
-        <div className="services-grid">
-          {services.map((service) => (
-            <ServiceCard key={service.slug} service={service} />
-          ))}
-        </div>
+        {coursesError ? <div className="dashboard-alert dashboard-alert-error">{coursesError}</div> : null}
+        {coursesLoading ? (
+          <div className="dashboard-empty-state">Loading course catalog...</div>
+        ) : (
+          <div className="services-grid">
+            {courseCards.map((service) => (
+              <ServiceCard key={service.slug} service={service} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="section-shell" id="testimonials">

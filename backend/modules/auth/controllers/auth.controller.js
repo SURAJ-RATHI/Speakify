@@ -47,7 +47,6 @@ const googleCallback = async (req, res, next) => {
 
         const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:5173";
         const redirectUrl = new URL("/auth/google/success", frontendUrl);
-        redirectUrl.searchParams.set("accessToken", payload.accessToken);
 
         return res.redirect(redirectUrl.toString());
     } catch (error) {

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getStoredAccessToken, getStoredAuthUser } from '../utils/auth';
-import { services } from '../data/constant';
+import { fetchCourseBySlug, mergeCourseWithServiceMeta } from '../utils/course-data';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
@@ -14,11 +14,14 @@ export function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const courseSlug = searchParams.get('course');
   const [loading, setLoading] = useState(false);
+  const [courseLoading, setCourseLoading] = useState(true);
+  const [courseError, setCourseError] = useState('');
+  const [course, setCourse] = useState(null);
   const [error, setError] = useState('');
 
   const accessToken = getStoredAccessToken();
   const user = getStoredAuthUser();
-  const course = services.find((s) => s.slug === courseSlug);
+  const displayCourse = useMemo(() => (course ? mergeCourseWithServiceMeta(course) : null), [course]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -27,12 +30,60 @@ export function CheckoutPage() {
     }
   }, [accessToken, courseSlug]);
 
-  if (!course) {
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCourse = async () => {
+      if (!courseSlug) {
+        setCourseLoading(false);
+        setCourseError('Course not found');
+        return;
+      }
+
+      setCourseLoading(true);
+      setCourseError('');
+
+      try {
+        const courseData = await fetchCourseBySlug(courseSlug);
+        if (!isMounted) return;
+
+        setCourse(courseData);
+      } catch (requestError) {
+        if (!isMounted) return;
+
+        setCourse(null);
+        setCourseError(requestError.message || 'Course not found');
+      } finally {
+        if (isMounted) {
+          setCourseLoading(false);
+        }
+      }
+    };
+
+    void loadCourse();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseSlug]);
+
+  if (courseLoading) {
+    return (
+      <section className="section-shell payment-page-shell">
+        <div className="payment-card">
+          <h1>Loading Course</h1>
+          <p>Fetching the latest course details.</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!displayCourse) {
     return (
       <section className="section-shell payment-page-shell">
         <div className="payment-card">
           <h1>Course Not Found</h1>
-          <p>The course you're trying to purchase doesn't exist.</p>
+          <p>{courseError || "The course you're trying to purchase doesn't exist."}</p>
           <button
             className="button button-primary"
             onClick={() => navigate('/')}
@@ -65,9 +116,7 @@ export function CheckoutPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          courseId: course.slug,
-          courseName: course.shortTitle,
-          amount: course.priceInr,
+          courseId: displayCourse.slug,
         }),
       });
 
@@ -78,68 +127,93 @@ export function CheckoutPage() {
       }
 
       const paymentId = orderData.data.paymentId;
+      const orderId = orderData.data.orderId;
+      const amount = orderData.data.amount;
+      const currency = orderData.data.currency || 'INR';
 
-      // Step 2: Load Razorpay script
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => {
-        const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY',
-          amount: course.priceInr * 100, // Amount in paise
-          currency: 'INR',
-          name: 'Speak with amit',
-          description: `Enrollment for ${course.shortTitle}`,
-          image: 'https://ik.imagekit.io/kzspvcbz5/speakify-logo.png',
-          handler: async (response) => {
-            try {
-              // Step 3: Verify payment in backend
-              const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/payments/verify`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${accessToken}`,
+      const loadRazorpayScript = () =>
+        new Promise((resolve, reject) => {
+          if (window.Razorpay) {
+            resolve();
+            return;
+          }
+
+          const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+          if (existingScript) {
+            existingScript.addEventListener('load', () => resolve(), { once: true });
+            existingScript.addEventListener('error', () => reject(new Error('Failed to load Razorpay checkout')), { once: true });
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+          document.body.appendChild(script);
+        });
+
+      await loadRazorpayScript();
+
+      const options = {
+        key: orderData.data.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY',
+        amount,
+        currency,
+        order_id: orderId,
+        name: 'Speakify',
+        description: `Enrollment for ${displayCourse.shortTitle}`,
+        image: 'https://ik.imagekit.io/kzspvcbz5/speakify-logo.png',
+        handler: async (response) => {
+          try {
+            const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/payments/verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                paymentId,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyResponse.ok && verifyData.success) {
+              navigate('/payment-success', {
+                state: {
+                  courseName: verifyData.data?.courseName || displayCourse.shortTitle,
+                  amount: verifyData.data?.amount ?? displayCourse.priceInr,
                 },
-                credentials: 'include',
-                body: JSON.stringify({
-                  paymentId,
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                }),
               });
-
-              const verifyData = await verifyResponse.json();
-
-              if (verifyResponse.ok && verifyData.success) {
-                navigate('/payment-success', {
-                  state: {
-                    courseName: course.shortTitle,
-                    amount: course.priceInr,
-                  },
-                });
-              } else {
-                throw new Error(verifyData.message || 'Payment verification failed');
-              }
-            } catch (err) {
-              setError(err.message || 'Payment verification failed. Please contact support.');
-              setLoading(false);
+              return;
             }
-          },
-          prefill: {
-            name: user?.name || '',
-            email: user?.email || '',
-          },
-          theme: {
-            color: '#f97316',
-          },
-        };
 
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-        setLoading(false);
+            throw new Error(verifyData.message || 'Payment verification failed');
+          } catch (err) {
+            setError(err.message || 'Payment verification failed. Please contact support.');
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          },
+        },
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+        },
+        theme: {
+          color: '#f97316',
+        },
       };
 
-      document.body.appendChild(script);
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
       setError(err.message || 'Failed to process payment. Please try again.');
       setLoading(false);
@@ -155,12 +229,12 @@ export function CheckoutPage() {
         <div className="payment-details">
           <div className="payment-item">
             <span className="payment-label">Course</span>
-            <span className="payment-value">{course.shortTitle}</span>
+            <span className="payment-value">{displayCourse.shortTitle}</span>
           </div>
 
           <div className="payment-item">
             <span className="payment-label">Duration</span>
-            <span className="payment-value">{course.duration || 'Self-paced'}</span>
+            <span className="payment-value">{displayCourse.courseMeta?.duration || 'Self-paced'}</span>
           </div>
 
           <div className="payment-item">
@@ -177,7 +251,7 @@ export function CheckoutPage() {
 
           <div className="payment-item payment-total">
             <span className="payment-label">Total Amount</span>
-            <span className="payment-value">{formatInr(course.priceInr)}</span>
+            <span className="payment-value">{formatInr(displayCourse.priceInr)}</span>
           </div>
         </div>
 
@@ -188,7 +262,7 @@ export function CheckoutPage() {
           onClick={handlePayment}
           disabled={loading}
         >
-          {loading ? 'Processing...' : `Pay ${formatInr(course.priceInr)}`}
+          {loading ? 'Processing...' : `Pay ${formatInr(displayCourse.priceInr)}`}
         </button>
 
         <p className="payment-note">

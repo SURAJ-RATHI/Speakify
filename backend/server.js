@@ -10,7 +10,10 @@ const connectDatabase = require("./config/database");
 const configurePassport = require("./config/passport");
 const authRoutes = require("./modules/auth/routes/auth.routes");
 const paymentRoutes = require("./modules/payment/routes/payment.routes");
+const coursesRoutes = require("./modules/courses/routes/courses.routes");
 const feedbackRoutes = require("./modules/feedback/routes/feedback.routes");
+const { seedCourseCatalog } = require("./modules/courses/course-catalog");
+const { syncPaymentIndexes } = require("./models/Payment");
 const { errorHandler } = require("./utils/errorHandler");
 
 const app = express();
@@ -63,6 +66,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/v1/courses", coursesRoutes);
+app.use("/api/courses", coursesRoutes);
 app.use("/api/v1/feedback", feedbackRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
@@ -88,6 +93,8 @@ process.on("unhandledRejection", (error) => {
 const startServer = async () => {
     try {
         await connectDatabase();
+        await syncPaymentIndexes();
+        await seedCourseCatalog();
 
         const server = app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

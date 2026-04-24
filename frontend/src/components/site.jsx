@@ -1,6 +1,8 @@
 import { FaArrowRight, FaBookOpen, FaCommentDots, FaHeart, FaMicrophoneAlt, FaWhatsapp } from 'react-icons/fa';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FaChevronDown, FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
+import { useAuth } from '../context/auth-context';
 
 const iconMap = {
   mic: FaMicrophoneAlt,
@@ -19,8 +21,22 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+  const { isAuthenticated, user, logout } = useAuth();
   const sectionHref = (id) => (location.pathname === '/' ? `#${id}` : `/#${id}`);
   const closeMenu = () => setIsMenuOpen(false);
+  const closeProfileMenu = () => setIsProfileMenuOpen(false);
+
+  const userInitials = useMemo(() => {
+    const name = user?.name?.trim() || 'S';
+    const parts = name.split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) return 'S';
+    if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+
+    return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`.toUpperCase();
+  }, [user?.name]);
 
   const scrollToSection = useCallback((id, behavior = 'smooth') => {
     const target = document.getElementById(id);
@@ -65,7 +81,28 @@ export function AppLayout() {
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsProfileMenuOpen(false);
   }, [location.pathname, location.hash]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      if (!profileMenuRef.current?.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    closeProfileMenu();
+    navigate('/', { replace: true });
+  };
 
   return (
     <div className="site-shell">
@@ -95,10 +132,49 @@ export function AppLayout() {
           <NavLink to="/why-choose-us" onClick={closeMenu}>Why Choose Us</NavLink>
           <a href={sectionHref('testimonials')} onClick={handleSectionNavigation('testimonials')}>Testimonials</a>
           <NavLink to="/about-instructor" onClick={closeMenu}>About Instructor</NavLink>
+          {isAuthenticated && <NavLink to="/dashboard" onClick={closeMenu}>Dashboard</NavLink>}
         </nav>
-        <a className="nav-cta" href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>
-          Courses
-        </a>
+        <div className="site-header-actions" ref={profileMenuRef}>
+          <Link
+            className="nav-cta"
+            to={isAuthenticated ? '/dashboard' : '/auth?next=/dashboard'}
+            onClick={closeMenu}
+          >
+            {isAuthenticated ? 'Dashboard' : 'Sign In'}
+          </Link>
+          {isAuthenticated ? (
+            <div className="profile-menu-wrap">
+              <button
+                type="button"
+                className="profile-avatar-button"
+                onClick={() => setIsProfileMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+                aria-label="Open user menu"
+              >
+                <span className="profile-avatar">{userInitials}</span>
+                <FaChevronDown className="profile-avatar-caret" />
+              </button>
+
+              {isProfileMenuOpen && (
+                <div className="profile-menu-card" role="menu">
+                  <div className="profile-menu-header">
+                    <strong>{user?.name || 'Student'}</strong>
+                    <span>{user?.email || 'Signed in'}</span>
+                  </div>
+                  <Link className="profile-menu-item" to="/profile" onClick={closeProfileMenu} role="menuitem">
+                    <FaUserCircle />
+                    User Profile
+                  </Link>
+                  <button type="button" className="profile-menu-item profile-menu-danger" onClick={handleLogout} role="menuitem">
+                    <FaSignOutAlt />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
       </header>
       <main>
         <Outlet />

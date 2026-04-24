@@ -8,6 +8,7 @@ import { GoogleAuthSuccessPage } from './components/google-auth-success-page';
 import { WhyChooseUsPage } from './components/why-choose-us-page';
 import { CheckoutPage } from './components/checkout-page';
 import { PaymentSuccessPage } from './components/payment-success-page';
+import { UserDashboardPage } from './components/user-dashboard-page';
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         <Route path="/services/:slug" element={<ServicePage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/payment-success" element={<PaymentSuccessPage />} />
+        <Route path="/dashboard" element={<UserDashboardPage />} />
+        <Route path="/profile" element={<UserDashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
       <Route path="/auth" element={<AuthPage />} />

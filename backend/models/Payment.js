@@ -39,17 +39,17 @@ const paymentSchema = new mongoose.Schema(
         },
         razorpayOrderId: {
             type: String,
-            unique: true,
-            sparse: true,
         },
         razorpayPaymentId: {
             type: String,
-            unique: true,
-            sparse: true,
+        },
+        razorpaySignature: {
+            type: String,
+            default: null,
         },
         purchasedAt: {
             type: Date,
-            default: Date.now,
+            default: null,
         },
     },
     {
@@ -57,4 +57,33 @@ const paymentSchema = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
+paymentSchema.index(
+    { razorpayOrderId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            razorpayOrderId: { $type: "string" },
+        },
+    }
+);
+
+paymentSchema.index(
+    { razorpayPaymentId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            razorpayPaymentId: { $type: "string" },
+        },
+    }
+);
+
+const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
+
+const syncPaymentIndexes = async () => {
+    await Payment.updateMany({ razorpayOrderId: null }, { $unset: { razorpayOrderId: 1 } });
+    await Payment.updateMany({ razorpayPaymentId: null }, { $unset: { razorpayPaymentId: 1 } });
+    await Payment.syncIndexes();
+};
+
+module.exports = Payment;
+module.exports.syncPaymentIndexes = syncPaymentIndexes;

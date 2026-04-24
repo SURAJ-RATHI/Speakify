@@ -1,59 +1,50 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { clearAuthSession, refreshAuthSession, setAuthSession } from '../utils/auth';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { refreshAuthSession } from '../utils/auth';
+import { useAuth } from '../context/auth-context';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
+const normalizeRedirectPath = (value) => {
+  if (typeof value !== 'string') return '/dashboard';
+
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return '/dashboard';
+  }
+
+  return trimmed;
+};
 
 export function GoogleAuthSuccessPage() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [message, setMessage] = useState('Completing Google sign-in...');
+  const { setSession } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
-    let ignore = false;
-
     const completeGoogleSignin = async () => {
-      const params = new URLSearchParams(location.search);
-      const accessToken = params.get('accessToken');
-
-      if (!accessToken) {
-        navigate('/auth?error=google_auth_failed', { replace: true });
-        return;
-      }
-
-      clearAuthSession();
-      setAuthSession({ accessToken });
+      const redirectPath = normalizeRedirectPath(sessionStorage.getItem('post_auth_redirect'));
+      sessionStorage.removeItem('post_auth_redirect');
 
       try {
-        await refreshAuthSession(API_BASE_URL);
+        const session = await refreshAuthSession((import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, ''));
+        setSession(session);
+        window.location.replace(redirectPath);
       } catch {
-        setMessage('Signed in, but profile sync is pending. Redirecting...');
+        navigate('/auth?error=google_auth_failed', { replace: true });
       }
-
-      if (ignore) return;
-
-      const redirectPath = sessionStorage.getItem('post_auth_redirect') || '/';
-      sessionStorage.removeItem('post_auth_redirect');
-      navigate(redirectPath, { replace: true });
     };
 
     completeGoogleSignin();
-
-    return () => {
-      ignore = true;
-    };
-  }, [location.search, navigate]);
+  }, [navigate, setSession]);
 
   return (
     <section className="section-shell payment-page-shell">
       <div className="payment-card">
         <span className="eyebrow">Google Login</span>
         <h1>Please wait</h1>
-        <p>{message}</p>
+        <p>Completing Google sign-in...</p>
       </div>
     </section>
   );

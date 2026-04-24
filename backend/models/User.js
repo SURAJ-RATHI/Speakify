@@ -27,6 +27,12 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: null,
         },
+        purchasedCourses: [
+            {
+                type: String,
+                trim: true,
+            },
+        ],
         lastLoginAt: {
             type: Date,
             default: null,

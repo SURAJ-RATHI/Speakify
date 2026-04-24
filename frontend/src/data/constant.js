@@ -50,7 +50,7 @@ export const heroContent = {
 export const aboutInstructorPreview = {
   eyebrow: "About The Instructor",
   title: "Learn from a certified mentor focused on real speaking outcomes",
-  text: "I have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progress.I have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progress",
+  text: "Amit Lamba is a unique architectural blend of high-level technical expertise and transformative communication coaching. With a B.Tech in Computer Science and over two decades of leadership at global IT powerhouses like Samsung, Honeywell, and HCL, he possesses an insider’s understanding of the high-stakes communication required in the corporate world. This professional pedigree allows him to mentor students and executives not just in speaking, but in commanding authority through English fluency, public speaking, and overcoming speech challenges like stammering. His coaching philosophy rejects abstract theory in favor of practical speaking practice and measurable progress tracking, fueled by his passion for self-help literature and personal growth. For Amit, communication is the ultimate tool for unlocking a professional's true potential, turning technical brilliance into visible, calm confidence.As an avid practitioner of self-help principles and continuous personal growth, he doesn't just teach communication; he mentors his clients to leverage their voices as a strategic asset, ensuring their professional impact finally matches their technical expertise.",
   text2: "I have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progress.I have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. Every batch is practical, personal, and built around visible progressI have spent years coaching students, professionals, and entrepreneurs to speak with calm confidence. confidence. Every batch is practical, personal, and built around visible progress",
   signature: "Amit Lamba",
   readMorePath: "/about-instructor",
@@ -64,11 +64,9 @@ export const aboutInstructorDetails = {
   photoUrl:
     "https://ik.imagekit.io/kzspvcbz5/amit_bhiwanialgo/stagephoto.jpg?updatedAt=1776496283442",
   intro: [
-    "My coaching style blends practical drills, mindset work, and personalized feedback so each learner can progress at their own pace.",
-    "I have trained learners for interviews, stage talks, group discussions, and classroom communication with a step-by-step growth system.",
-    "I have trained learners for interviews, stage talks, group discussions, and classroom communication with a step-by-step growth system.",
-    "I have trained learners for interviews, stage talks, group discussions, and classroom communication with a step-by-step growth system.",
-    "I have trained learners for interviews, stage talks, group discussions, and classroom communication with a step-by-step growth system.",
+ "I am a technology professional with over two decades of experience in the IT industry, having worked with leading organizations such as Honeywell, Samsung, Aristocrat, Incedo, and HCL Technologies.",
+ "Beyond my corporate journey, I am deeply passionate about helping individuals transform their communication skills. My mission is to empower people to overcome spoken English challenges, master public speaking, and confidently address stammering.",
+ "I hold a B.Tech in Computer Science & Engineering from JIET College. I am also an avid reader of self-help literature and strongly believe in applying practical learnings to drive real personal growth."
   ],
   mission:
     "My mission is simple: make confident communication accessible to every learner, regardless of background.",
@@ -222,6 +220,8 @@ export const corporateTrainingProgram = {
   ],
 };
 
+// UI presentation metadata for course pages.
+// The live course catalog now comes from the backend API.
 export const services = [
   {
     slug: "public-speaking",

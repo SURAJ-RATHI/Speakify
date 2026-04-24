@@ -5,6 +5,8 @@ const { handleGoogleUser } = require("../modules/auth/services/google-auth.servi
 
 let isConfigured = false;
 
+const normalizeEnvValue = (value) => (typeof value === "string" ? value.trim() : value);
+
 const isGoogleAuthConfigured = () =>
     Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL);
 
@@ -13,14 +15,21 @@ const configurePassport = () => {
         return passport;
     }
 
-    const clientID = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const callbackURL = process.env.GOOGLE_CALLBACK_URL;
+    const clientID = normalizeEnvValue(process.env.GOOGLE_CLIENT_ID);
+    const clientSecret = normalizeEnvValue(process.env.GOOGLE_CLIENT_SECRET);
+    const callbackURL = normalizeEnvValue(process.env.GOOGLE_CALLBACK_URL);
 
     if (!isGoogleAuthConfigured()) {
         console.warn("Google OAuth environment variables are missing. Google login is disabled.");
         return passport;
     }
+
+    if (!clientID || !clientSecret || !callbackURL) {
+        console.warn("Google OAuth environment variables are invalid after normalization. Google login is disabled.");
+        return passport;
+    }
+
+    console.info(`Google OAuth callback URL: ${callbackURL}`);
 
     passport.use(
         new GoogleStrategy(

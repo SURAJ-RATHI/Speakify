@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   FaArrowLeft,
   FaCheckCircle,
@@ -7,8 +7,9 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SectionHeading } from '../components/site';
-import { offlineBatchBaseDetails, servicePageDetails, services } from '../data/constant';
+import { offlineBatchBaseDetails, servicePageDetails } from '../data/constant';
 import { getStoredAccessToken } from '../utils/auth';
+import { fetchCourseBySlug, mergeCourseWithServiceMeta } from '../utils/course-data';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
@@ -19,17 +20,66 @@ export function ServicePage() {
 
   const navigate = useNavigate();
   const { slug } = useParams();
-  const service = services.find((item) => item.slug === slug);
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const pageDetails = slug ? servicePageDetails[slug] : null;
+  const service = useMemo(() => (course ? mergeCourseWithServiceMeta(course) : null), [course]);
   const fullBatchDetails = pageDetails
     ? [...offlineBatchBaseDetails, ...(pageDetails.extraDetails ?? [])]
     : offlineBatchBaseDetails;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCourse = async () => {
+      if (!slug) {
+        setLoading(false);
+        setError('Service not found');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const courseData = await fetchCourseBySlug(slug);
+        if (!isMounted) return;
+
+        setCourse(courseData);
+      } catch (requestError) {
+        if (!isMounted) return;
+
+        setCourse(null);
+        setError(requestError.message || 'Service not found');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadCourse();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <section className="section-shell service-page-shell">
+        <h1>Loading service...</h1>
+        <p>Fetching the latest course details.</p>
+      </section>
+    );
+  }
 
   if (!service) {
     return (
       <section className="section-shell service-page-shell">
         <h1>Service not found</h1>
-        <p>The page you requested does not exist.</p>
+        <p>{error || 'The page you requested does not exist.'}</p>
         <Link className="button button-primary" to="/">
           Back home
         </Link>
@@ -181,14 +231,14 @@ export function ServicePage() {
           description="Choose the schedule that best matches your timing while keeping the same core coaching quality."
         />
         <div className="course-grid">
-          {service.courses.map((course) => (
-            <article className="course-card" key={course.name}>
-              <h3>{course.name}</h3>
-              <p>{course.audience}</p>
+          {(service.courses || []).map((batch) => (
+            <article className="course-card" key={batch.name}>
+              <h3>{batch.name}</h3>
+              <p>{batch.audience}</p>
               <div className="course-tags">
-                <span>{course.duration}</span>
-                <span>{course.mode}</span>
-                {course.feeInr ? <span>{formatInr(course.feeInr)}</span> : null}
+                <span>{batch.duration}</span>
+                <span>{batch.mode}</span>
+                {batch.feeInr ? <span>{formatInr(batch.feeInr)}</span> : null}
               </div>
             </article>
           ))}

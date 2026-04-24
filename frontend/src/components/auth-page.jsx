@@ -4,6 +4,17 @@ import { FaGoogle } from 'react-icons/fa';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
+const normalizeRedirectPath = (value) => {
+  if (typeof value !== 'string') return '/dashboard';
+
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
+    return '/dashboard';
+  }
+
+  return trimmed;
+};
+
 export function AuthPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -13,7 +24,7 @@ export function AuthPage() {
 
   const getPostAuthRedirect = () => {
     const params = new URLSearchParams(location.search);
-    return params.get('next') || '/';
+    return normalizeRedirectPath(params.get('next'));
   };
 
   const handleGoogleAuth = () => {
