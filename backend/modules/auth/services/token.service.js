@@ -101,8 +101,17 @@ const getRefreshTokenCookieOptions = () => ({
     path: "/",
 });
 
+const getClearRefreshTokenCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/",
+    expires: new Date(0),
+});
+
 module.exports = {
     buildAuthPayload,
+    getClearRefreshTokenCookieOptions,
     getRefreshTokenCookieOptions,
     hashToken,
     serializeUser,

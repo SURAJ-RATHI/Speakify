@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getStoredAccessToken, getStoredAuthUser } from '../utils/auth';
+import { useAuth } from '../context/auth-context';
 import { fetchCourseBySlug, mergeCourseWithServiceMeta } from '../utils/course-data';
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 export function CheckoutPage() {
   useEffect(() => {
@@ -13,22 +11,40 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const courseSlug = searchParams.get('course');
+  const { accessToken, user, purchasedCourses, purchasedCoursesLoading, refreshPurchasedCourses } = useAuth();
   const [loading, setLoading] = useState(false);
   const [courseLoading, setCourseLoading] = useState(true);
   const [courseError, setCourseError] = useState('');
   const [course, setCourse] = useState(null);
   const [error, setError] = useState('');
 
-  const accessToken = getStoredAccessToken();
-  const user = getStoredAuthUser();
   const displayCourse = useMemo(() => (course ? mergeCourseWithServiceMeta(course) : null), [course]);
+  const isCoursePurchased = (purchasedCourse) => {
+    if (!displayCourse) return false;
+
+    const purchasedId = String(purchasedCourse?._id || purchasedCourse?.id || purchasedCourse || '').toLowerCase();
+    const purchasedSlug = String(purchasedCourse?.slug || purchasedCourse || '').toLowerCase();
+    const courseId = String(displayCourse._id || '').toLowerCase();
+    const courseSlugValue = String(displayCourse.slug || '').toLowerCase();
+
+    return purchasedId === courseId || purchasedSlug === courseSlugValue;
+  };
+  const hasPurchasedCourse = useMemo(
+    () =>
+      Boolean(
+        accessToken &&
+        displayCourse &&
+        purchasedCourses.some(isCoursePurchased),
+      ),
+    [accessToken, displayCourse, purchasedCourses],
+  );
 
   useEffect(() => {
     if (!accessToken) {
-      sessionStorage.setItem('post_auth_redirect', `/checkout?course=${courseSlug}`);
-      window.location.href = `${API_BASE_URL}/api/auth/google`;
+      const checkoutPath = `/checkout?course=${courseSlug || ''}`;
+      navigate(`/auth?next=${encodeURIComponent(checkoutPath)}`, { replace: true });
     }
-  }, [accessToken, courseSlug]);
+  }, [accessToken, courseSlug, navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -95,6 +111,35 @@ export function CheckoutPage() {
     );
   }
 
+  if (hasPurchasedCourse) {
+    return (
+      <section className="section-shell payment-page-shell">
+        <div className="payment-card">
+          <span className="eyebrow">Course Enrollment</span>
+          <h1>You already own this course</h1>
+          <p>{user?.name || 'This account'} has already purchased <strong>{displayCourse.shortTitle}</strong>.</p>
+          <button
+            className="button button-primary"
+            onClick={() => navigate('/dashboard')}
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (accessToken && purchasedCoursesLoading) {
+    return (
+      <section className="section-shell payment-page-shell">
+        <div className="payment-card">
+          <h1>Checking your enrollment</h1>
+          <p>We are verifying whether you already have access to this course.</p>
+        </div>
+      </section>
+    );
+  }
+
   const formatInr = (value) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -108,7 +153,7 @@ export function CheckoutPage() {
 
     try {
       // Step 1: Create payment order in backend
-      const orderResponse = await fetch(`${API_BASE_URL}/api/v1/payments/create-order`, {
+      const orderResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/payments/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +210,7 @@ export function CheckoutPage() {
         image: 'https://ik.imagekit.io/kzspvcbz5/speakify-logo.png',
         handler: async (response) => {
           try {
-            const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/payments/verify`, {
+            const verifyResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/payments/verify`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -183,6 +228,7 @@ export function CheckoutPage() {
             const verifyData = await verifyResponse.json();
 
             if (verifyResponse.ok && verifyData.success) {
+              await refreshPurchasedCourses();
               navigate('/payment-success', {
                 state: {
                   courseName: verifyData.data?.courseName || displayCourse.shortTitle,

@@ -99,9 +99,11 @@ export function AppLayout() {
   }, []);
 
   const handleLogout = async () => {
-    await logout();
     closeProfileMenu();
-    navigate('/', { replace: true });
+    closeMenu();
+    sessionStorage.removeItem('post_auth_redirect');
+    await logout();
+    window.location.replace('/');
   };
 
   return (

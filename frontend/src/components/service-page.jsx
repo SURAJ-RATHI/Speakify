@@ -7,11 +7,9 @@ import {
 } from 'react-icons/fa';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SectionHeading } from '../components/site';
+import { useAuth } from '../context/auth-context';
 import { offlineBatchBaseDetails, servicePageDetails } from '../data/constant';
-import { getStoredAccessToken } from '../utils/auth';
 import { fetchCourseBySlug, mergeCourseWithServiceMeta } from '../utils/course-data';
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
 export function ServicePage() {
   useEffect(() => {
@@ -20,11 +18,32 @@ export function ServicePage() {
 
   const navigate = useNavigate();
   const { slug } = useParams();
+  const { accessToken, isAuthenticated, purchasedCourses, purchasedCoursesLoading } = useAuth();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const pageDetails = slug ? servicePageDetails[slug] : null;
   const service = useMemo(() => (course ? mergeCourseWithServiceMeta(course) : null), [course]);
+  const isCoursePurchased = (purchasedCourse) => {
+    if (!service) return false;
+
+    const purchasedId = String(purchasedCourse?._id || purchasedCourse?.id || purchasedCourse || '').toLowerCase();
+    const purchasedSlug = String(purchasedCourse?.slug || purchasedCourse || '').toLowerCase();
+    const serviceId = String(service._id || '').toLowerCase();
+    const serviceSlug = String(service.slug || '').toLowerCase();
+
+    return purchasedId === serviceId || purchasedSlug === serviceSlug;
+  };
+  const hasPurchasedCourse = useMemo(
+    () =>
+      Boolean(
+        isAuthenticated &&
+        service &&
+        purchasedCourses.some(isCoursePurchased),
+      ),
+    [isAuthenticated, purchasedCourses, service],
+  );
+  const isOwnershipLoading = Boolean(isAuthenticated && purchasedCoursesLoading);
   const fullBatchDetails = pageDetails
     ? [...offlineBatchBaseDetails, ...(pageDetails.extraDetails ?? [])]
     : offlineBatchBaseDetails;
@@ -97,15 +116,18 @@ export function ServicePage() {
   const handleEnrollNow = (event) => {
     event.preventDefault();
     const checkoutPath = `/checkout?course=${service.slug}`;
-    const accessToken = getStoredAccessToken();
+
+    if (hasPurchasedCourse) {
+      navigate('/dashboard');
+      return;
+    }
 
     if (accessToken) {
       navigate(checkoutPath);
       return;
     }
 
-    sessionStorage.setItem('post_auth_redirect', checkoutPath);
-    window.location.href = `${API_BASE_URL}/api/auth/google`;
+    navigate(`/auth?next=${encodeURIComponent(checkoutPath)}`);
   };
 
   return (
@@ -131,14 +153,20 @@ export function ServicePage() {
               </div>
             ))}
           </div>
-          <Link
-            className="button button-primary course-enroll-button"
-            to={`/checkout?course=${service.slug}`}
-            onClick={handleEnrollNow}
-          >
-            Enroll Now
-            <FaArrowRight />
-          </Link>
+          {isOwnershipLoading ? (
+            <button className="button button-primary course-enroll-button" type="button" disabled>
+              Checking access...
+            </button>
+          ) : (
+            <Link
+              className="button button-primary course-enroll-button"
+              to={hasPurchasedCourse ? '/dashboard' : `/checkout?course=${service.slug}`}
+              onClick={handleEnrollNow}
+            >
+              {hasPurchasedCourse ? 'Go to Dashboard' : 'Enroll Now'}
+              <FaArrowRight />
+            </Link>
+          )}
         </div>
         <div className="course-hero-media" style={{ '--service-accent': service.accent }}>
           <img src={pageDetails?.heroImageUrl} alt={pageDetails?.heroImageAlt ?? `${service.title} batch`} />

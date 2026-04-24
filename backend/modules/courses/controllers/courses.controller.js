@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const Course = require("../../../models/courses");
 const Payment = require("../../../models/Payment");
+const User = require("../../../models/User");
 const { seedCourseCatalog } = require("../course-catalog");
 const { AppError } = require("../../../utils/errorHandler");
 
@@ -221,45 +222,64 @@ const getPurchasedCoursesByUser = async (req, res, next) => {
         }
 
         await seedCourseCatalog();
-        const payments = await Payment.find({
-            userId,
-            paymentStatus: "completed",
-        })
-            .select("courseId courseName amount currency purchasedAt razorpayOrderId razorpayPaymentId")
-            .sort({ purchasedAt: -1, createdAt: -1 })
-            .lean();
+        const user = await User.findById(userId).select("purchasedCourses").lean();
 
-        const uniquePurchases = new Map();
+        if (!user) {
+            throw new AppError(404, "User not found");
+        }
 
-        for (const payment of payments) {
-            const courseKey = payment.courseId?.toString();
+        const ownedRefs = Array.isArray(user.purchasedCourses)
+            ? user.purchasedCourses.map((value) => String(value).trim()).filter(Boolean)
+            : [];
 
-            if (courseKey && !uniquePurchases.has(courseKey)) {
-                uniquePurchases.set(courseKey, payment);
+        const buildPurchasedCoursesFromPayments = async () => {
+            const payments = await Payment.find({
+                userId,
+                paymentStatus: "completed",
+            })
+                .select("courseId courseName amount currency purchasedAt razorpayOrderId razorpayPaymentId")
+                .sort({ purchasedAt: -1, createdAt: -1 })
+                .lean();
+
+            const uniquePurchases = new Map();
+
+            for (const payment of payments) {
+                const courseKey = payment.courseId?.toString().toLowerCase();
+
+                if (courseKey && !uniquePurchases.has(courseKey)) {
+                    uniquePurchases.set(courseKey, payment);
+                }
             }
-        }
 
-        if (uniquePurchases.size === 0) {
-            return res.status(200).json({
-                success: true,
-                message: "No purchased courses found for this user",
-                data: [],
-            });
-        }
+            if (uniquePurchases.size === 0) {
+                return [];
+            }
 
-        const courseIds = [...uniquePurchases.keys()];
-        const courses = await Course.find({ slug: { $in: courseIds } }).lean();
-        const courseMap = new Map(courses.map((course) => [course.slug, course]));
+            const courseKeys = [...uniquePurchases.keys()];
+            const courses = await Course.find({ slug: { $in: courseKeys } }).lean();
+            const courseMap = new Map(courses.map((course) => [course.slug, course]));
 
-        const purchasedCourses = courseIds.map((courseId) => {
-            const payment = uniquePurchases.get(courseId);
-            const course = courseMap.get(courseId) || null;
+            return courseKeys.map((courseKey) => {
+                const payment = uniquePurchases.get(courseKey);
+                const course = courseMap.get(courseKey) || null;
 
-            if (!course) {
+                if (!course) {
+                    return {
+                        _id: courseKey,
+                        title: payment.courseName,
+                        slug: courseKey,
+                        purchase: {
+                            amount: payment.amount,
+                            currency: payment.currency,
+                            purchasedAt: payment.purchasedAt,
+                            razorpayOrderId: payment.razorpayOrderId,
+                            razorpayPaymentId: payment.razorpayPaymentId,
+                        },
+                    };
+                }
+
                 return {
-                    _id: courseId,
-                    title: payment.courseName,
-                    slug: courseId,
+                    ...normalizeCoursePayload(course),
                     purchase: {
                         amount: payment.amount,
                         currency: payment.currency,
@@ -268,24 +288,134 @@ const getPurchasedCoursesByUser = async (req, res, next) => {
                         razorpayPaymentId: payment.razorpayPaymentId,
                     },
                 };
+            });
+        };
+
+        if (ownedRefs.length === 0) {
+            const purchasedCoursesFromPayments = await buildPurchasedCoursesFromPayments();
+
+            if (purchasedCoursesFromPayments.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: "No purchased courses found for this user",
+                    data: [],
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Purchased courses retrieved successfully",
+                data: purchasedCoursesFromPayments,
+            });
+        }
+
+        const ownedIds = ownedRefs.filter((value) => mongoose.Types.ObjectId.isValid(value));
+        const ownedSlugs = ownedRefs
+            .filter((value) => !mongoose.Types.ObjectId.isValid(value))
+            .map((value) => value.toLowerCase());
+
+        const [idCourses, slugCourses, payments] = await Promise.all([
+            ownedIds.length ? Course.find({ _id: { $in: ownedIds } }).lean() : Promise.resolve([]),
+            ownedSlugs.length ? Course.find({ slug: { $in: ownedSlugs } }).lean() : Promise.resolve([]),
+            Payment.find({
+                userId,
+                paymentStatus: "completed",
+            })
+                .select("courseId courseName amount currency purchasedAt razorpayOrderId razorpayPaymentId")
+                .sort({ purchasedAt: -1, createdAt: -1 })
+                .lean(),
+        ]);
+
+        const courseMap = new Map();
+        for (const course of idCourses) {
+            courseMap.set(course._id.toString(), course);
+            courseMap.set(course.slug.toLowerCase(), course);
+        }
+        for (const course of slugCourses) {
+            courseMap.set(course.slug.toLowerCase(), course);
+        }
+
+        const paymentMap = new Map();
+        for (const payment of payments) {
+            const courseKey = payment.courseId?.toString().toLowerCase();
+
+            if (courseKey && !paymentMap.has(courseKey)) {
+                paymentMap.set(courseKey, payment);
+            }
+        }
+
+        const purchasedCourses = ownedRefs.map((ownedRef) => {
+            const ownedKey = ownedRef.toLowerCase();
+            const course = courseMap.get(ownedKey) || courseMap.get(ownedRef) || null;
+            const payment = paymentMap.get(ownedKey) || paymentMap.get(course?.slug?.toLowerCase()) || null;
+
+            if (!course) {
+                return {
+                    _id: ownedRef,
+                    title: payment?.courseName || ownedRef,
+                    slug: payment?.courseId || ownedRef,
+                    purchase: payment
+                        ? {
+                            amount: payment.amount,
+                            currency: payment.currency,
+                            purchasedAt: payment.purchasedAt,
+                            razorpayOrderId: payment.razorpayOrderId,
+                            razorpayPaymentId: payment.razorpayPaymentId,
+                        }
+                        : undefined,
+                };
             }
 
             return {
                 ...normalizeCoursePayload(course),
-                purchase: {
-                    amount: payment.amount,
-                    currency: payment.currency,
-                    purchasedAt: payment.purchasedAt,
-                    razorpayOrderId: payment.razorpayOrderId,
-                    razorpayPaymentId: payment.razorpayPaymentId,
-                },
+                purchase: payment
+                    ? {
+                        amount: payment.amount,
+                        currency: payment.currency,
+                        purchasedAt: payment.purchasedAt,
+                        razorpayOrderId: payment.razorpayOrderId,
+                        razorpayPaymentId: payment.razorpayPaymentId,
+                    }
+                    : {
+                        amount: course.price,
+                        currency: "INR",
+                        purchasedAt: null,
+                    },
             };
         });
+
+        if (purchasedCourses.length === 0) {
+            const purchasedCoursesFromPayments = await buildPurchasedCoursesFromPayments();
+
+            if (purchasedCoursesFromPayments.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: "No purchased courses found for this user",
+                    data: [],
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Purchased courses retrieved successfully",
+                data: purchasedCoursesFromPayments,
+            });
+        }
+
+        const filteredPurchasedCourses = purchasedCourses.filter((course) => course?.slug || course?._id);
+
+        if (filteredPurchasedCourses.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No purchased courses found for this user",
+                data: [],
+            });
+        }
 
         return res.status(200).json({
             success: true,
             message: "Purchased courses retrieved successfully",
-            data: purchasedCourses,
+            data: filteredPurchasedCourses,
         });
     } catch (error) {
         return next(error);

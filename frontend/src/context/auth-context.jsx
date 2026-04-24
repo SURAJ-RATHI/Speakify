@@ -67,22 +67,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch {
-      // Clearing the local session is still the important part here.
-    } finally {
-      clearAuthSession();
-      setAuthState({
-        accessToken: '',
-        user: null,
-      });
-      setPurchasedCourses([]);
-      setPurchasedCoursesError('');
-    }
+    clearAuthSession();
+    setAuthState({
+      accessToken: '',
+      user: null,
+    });
+    setPurchasedCourses([]);
+    setPurchasedCoursesError('');
+    setPurchasedCoursesLoading(false);
+
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {
+      // The local logout has already completed, so server cleanup is best effort.
+    });
   }, []);
 
   const refreshPurchasedCourses = useCallback(async (session = authState) => {

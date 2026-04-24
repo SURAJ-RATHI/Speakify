@@ -1,5 +1,8 @@
 const authService = require("../services/auth.service");
-const { getRefreshTokenCookieOptions } = require("../services/token.service");
+const {
+    getClearRefreshTokenCookieOptions,
+    getRefreshTokenCookieOptions,
+} = require("../services/token.service");
 const { REFRESH_COOKIE_NAME } = require("../utils/auth.constants");
 const authMessages = require("../utils/auth.messages");
 
@@ -29,7 +32,7 @@ const refreshToken = async (req, res, next) => {
 const logout = async (req, res, next) => {
     try {
         await authService.logout(req.cookies[REFRESH_COOKIE_NAME]);
-        res.clearCookie(REFRESH_COOKIE_NAME, getRefreshTokenCookieOptions());
+        res.clearCookie(REFRESH_COOKIE_NAME, getClearRefreshTokenCookieOptions());
 
         return res.status(200).json({
             success: true,

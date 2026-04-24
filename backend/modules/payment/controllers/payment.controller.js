@@ -20,11 +20,11 @@ const resolveCourseBySlug = async (slug) => {
     return null;
 };
 
-const grantCourseAccess = async ({ userId, courseSlug }) => {
-    if (!userId || !courseSlug) return;
+const grantCourseAccess = async ({ userId, courseId, courseSlug }) => {
+    if (!userId || !courseId || !courseSlug) return;
 
     await Promise.all([
-        User.updateOne({ _id: userId }, { $addToSet: { purchasedCourses: courseSlug } }),
+        User.updateOne({ _id: userId }, { $addToSet: { purchasedCourses: courseId } }),
         Course.updateOne({ slug: String(courseSlug).toLowerCase() }, { $addToSet: { enrolledStudents: userId } }),
     ]);
 };
@@ -34,6 +34,7 @@ const createPaymentOrder = async (req, res, next) => {
         const { courseId } = req.body;
         const userId = req.user?._id;
         const course = await resolveCourseBySlug(courseId);
+        const courseSlug = course?.slug?.toLowerCase();
 
         if (!userId) {
             throw new AppError(401, "User not authenticated");
@@ -55,12 +56,33 @@ const createPaymentOrder = async (req, res, next) => {
         if (!user) {
             throw new AppError(404, "User not found");
         }
+
+        const ownedCourseId = course._id.toString();
+        const alreadyPurchased = Boolean(
+            courseSlug &&
+            (
+                user.purchasedCourses?.some((purchasedCourse) => {
+                    const purchasedValue = String(purchasedCourse).toLowerCase();
+                    return purchasedValue === ownedCourseId.toLowerCase() || purchasedValue === courseSlug;
+                }) ||
+                await Payment.exists({
+                    userId,
+                    courseId: courseSlug,
+                    paymentStatus: "completed",
+                })
+            ),
+        );
+
+        if (alreadyPurchased) {
+            throw new AppError(409, "You have already purchased this course");
+        }
+
         const payableAmount = course.price ?? course.priceInr;
 
         const payment = await Payment.create({
             userId,
             email: user.email,
-            courseId: course.slug,
+            courseId: courseSlug,
             courseName: course.title || course.shortTitle,
             amount: payableAmount,
             currency: "INR",
@@ -134,8 +156,10 @@ const verifyPayment = async (req, res, next) => {
                 payment.razorpayOrderId === razorpayOrderId &&
                 payment.razorpayPaymentId === razorpayPaymentId
             ) {
+                const course = await resolveCourseBySlug(payment.courseId);
                 await grantCourseAccess({
                     userId: payment.userId,
+                    courseId: course?._id?.toString(),
                     courseSlug: payment.courseId,
                 });
 
@@ -185,8 +209,10 @@ const verifyPayment = async (req, res, next) => {
         payment.purchasedAt = new Date();
 
         await payment.save();
+        const course = await resolveCourseBySlug(payment.courseId);
         await grantCourseAccess({
             userId: payment.userId,
+            courseId: course?._id?.toString(),
             courseSlug: payment.courseId,
         });
 
