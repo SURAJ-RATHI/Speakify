@@ -136,14 +136,17 @@ export function AppLayout() {
           <NavLink to="/about-instructor" onClick={closeMenu}>About Instructor</NavLink>
           {isAuthenticated && <NavLink to="/dashboard" onClick={closeMenu}>Dashboard</NavLink>}
         </nav>
-        <div className="site-header-actions" ref={profileMenuRef}>
+        <div className="site-header-actions" ref={profileMenuRef}> 
+          {!isAuthenticated && (
           <Link
-            className="nav-cta"
-            to={isAuthenticated ? '/dashboard' : '/auth?next=/dashboard'}
-            onClick={closeMenu}
-          >
-            {isAuthenticated ? 'Dashboard' : 'Sign In'}
-          </Link>
+          className="nav-cta"
+          to={!isAuthenticated ? '/auth?next=/dashboard' : null}
+          onClick={closeMenu}
+        >
+          {!isAuthenticated && 'Sign In'}
+        </Link>
+          )}
+
           {isAuthenticated ? (
             <div className="profile-menu-wrap">
               <button
@@ -155,7 +158,7 @@ export function AppLayout() {
                 aria-label="Open user menu"
               >
                 <span className="profile-avatar">{userInitials}</span>
-                <FaChevronDown className="profile-avatar-caret" />
+                {/* <FaChevronDown className="profile-avatar-caret" /> */}
               </button>
 
               {isProfileMenuOpen && (
