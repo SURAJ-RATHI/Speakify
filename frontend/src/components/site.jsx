@@ -131,7 +131,7 @@ export function AppLayout() {
         </button>
         <nav className={`site-nav ${isMenuOpen ? 'mobile-open' : ''}`}>
           <NavLink to="/" onClick={closeMenu}>Home</NavLink>
-          <a href={sectionHref('our-courses')} onClick={handleSectionNavigation('our-courses')}>Our Courses</a>
+          <a href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>Our Courses</a>
           <NavLink to="/profile" onClick={closeMenu}>My Batches</NavLink>
           <NavLink to="/about-instructor" onClick={closeMenu}>About Instructor</NavLink>
         </nav>
