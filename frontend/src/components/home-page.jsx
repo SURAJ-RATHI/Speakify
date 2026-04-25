@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { PrimaryActions, SectionHeading, ServiceCard } from '../components/site';
+import WhatsAppButton from "../components/WhatsAppButton";
 import {
   aboutInstructorPreview,
   classroomImages,
@@ -463,6 +464,7 @@ export function HomePage() {
           ))}
         </div>
       </section>
+      <WhatsAppButton />
     </>
   );
 }
