@@ -121,13 +121,13 @@ export function UserDashboardPage() {
           Loading your purchased courses...
         </div>
       ) : purchasedCourses.length === 0 ? (
-<div className="dashboard-empty-state">
-  <p>You have not purchased any courses yet. Explore the available programs to get started.</p>
-  <Link to={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>
-    <span>Explore Courses</span>
-    <FaChevronRight />
-  </Link>
-</div>
+  <div className="dashboard-empty-state">
+          You have not purchased any courses yet. Explore the available programs to get started.
+         <a href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>Explore Courses</a>
+
+            <FaChevronRight />
+          </Link>
+        </div>
       ) : (
         <div className="dashboard-courses-grid">
           {purchasedCourses.map((course) => (
