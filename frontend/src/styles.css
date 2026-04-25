@@ -241,7 +241,7 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 88dvh;
   padding: 48px 0 24px;
   width: min(calc(90% - 32px), 1180px);
   margin: 0 auto;
