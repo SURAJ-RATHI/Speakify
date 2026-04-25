@@ -123,8 +123,8 @@ export function UserDashboardPage() {
       ) : purchasedCourses.length === 0 ? (
         <div className="dashboard-empty-state">
           You have not purchased any courses yet. Explore the available programs to get started.
-          <Link className="dashboard-empty-link" to="/">
-            Explore courses
+         <a href={sectionHref('courses')} onClick={handleSectionNavigation('courses')}>Explore Courses</a>
+
             <FaChevronRight />
           </Link>
         </div>
