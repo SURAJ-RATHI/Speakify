@@ -131,10 +131,9 @@ export function AppLayout() {
         </button>
         <nav className={`site-nav ${isMenuOpen ? 'mobile-open' : ''}`}>
           <NavLink to="/" onClick={closeMenu}>Home</NavLink>
-          <NavLink to="/why-choose-us" onClick={closeMenu}>Why Choose Us</NavLink>
-          <a href={sectionHref('testimonials')} onClick={handleSectionNavigation('testimonials')}>Testimonials</a>
+          <a href={sectionHref('our-courses')} onClick={handleSectionNavigation('our-courses')}>Our Courses</a>
+          <NavLink to="/profile" onClick={closeMenu}>My Batches</NavLink>
           <NavLink to="/about-instructor" onClick={closeMenu}>About Instructor</NavLink>
-          {isAuthenticated && <NavLink to="/dashboard" onClick={closeMenu}>Dashboard</NavLink>}
         </nav>
         <div className="site-header-actions" ref={profileMenuRef}> 
           {!isAuthenticated && (
