@@ -50,7 +50,7 @@ export function PaymentSuccessPage() {
           <Link to="/" className="button button-primary">
             Back to Home
           </Link>
-          <a href="/my-courses" className="button button-secondary">
+          <a href="/profile" className="button button-secondary">
             View My Courses
           </a>
         </div>
