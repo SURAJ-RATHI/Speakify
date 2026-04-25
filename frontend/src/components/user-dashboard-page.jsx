@@ -143,7 +143,7 @@ export function UserDashboardPage() {
             You have not purchased any courses yet. Explore the available programs to get started.
           </p>
 
-          <Link to="/courses" className="explore-link">
+          <Link to="/#courses" className="explore-link">
             <span>Explore Courses</span>
             <FaChevronRight />
           </Link>
